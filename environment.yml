@@ -1,0 +1,23 @@
+name: stat-comp
+channels:
+        - conda-forge
+dependencies:
+        - python=3.6
+        - numpy
+        - scipy
+        - pandas
+        - xarray
+        - dask 
+        - dask-jobqueue
+        - distributed
+        - netcdf4
+        - argopy
+        - bokeh
+        - cartopy
+        - cmocean
+        - ipykernel
+        - json
+        - matplotlib
+        - papermill
+        - seawater
+
