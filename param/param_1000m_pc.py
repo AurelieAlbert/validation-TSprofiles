@@ -1,4 +1,4 @@
-# param_all_profiles_MEDWEST60.py
+# comp_en4_profiles.py
 '''
 All the parameters
 '''
@@ -7,20 +7,18 @@ All the parameters
 config='MEDWEST60'
 case='BLBT02'
 member=''
-dirmod='/mnt/meom/workdir/lerouste/MEDWEST60/'
-maskfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mask.nc4'
-hgrfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_hgr.nc4'
-zgrfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_zgr.nc4'
-batfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_Bathymetry_v3.3.nc4'
+dirmod='/gpfsstore/rech/egi/commun/MEDWEST60/extracted_eNATL60/allv/'
+meshfile='/media/extra/DATA/MEDWEST60/MEDWEST60_mesh_hgr.nc4'
+batfile='/gpfsstore/rech/egi/commun/MEDWEST60/MEDWEST60-I/MEDWEST60_Bathymetry_v3.3.nc4'
 namlatmod='nav_lat'
 namlonmod='nav_lon'
 namdepmod='gdept_1d'
 nammaskmod='tmask'
 # period considered for the comparison
-ymin=2009;mmin=7;dmin=1
-ymax=2010;mmax=6;dmax=30
+ymin=2010;mmin=1;dmin=1
+ymax=2010;mmax=4;dmax=30
 # depth of the desired comparison profile in m
-depthmin=0
+depthmin=1000
 # radius of the circle around the profile location in which we take the modeled profiles, in °  
 radius_max=0.25
 # period of time around the profile sampling date in which we take the modeled profiles, in days
@@ -31,4 +29,4 @@ number_of_model_profiles=100000
 plotdir='plots'
 jsondir='txt'
 # wether we want to plot the area of comparison for each profile
-dmap=0
+dmap=1
