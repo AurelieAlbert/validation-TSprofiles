@@ -16,7 +16,6 @@ dependencies:
         - cartopy
         - cmocean
         - ipykernel
-        - json
         - matplotlib
         - papermill
         - seawater
