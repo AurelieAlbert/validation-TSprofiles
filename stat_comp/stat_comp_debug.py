@@ -205,6 +205,7 @@ def selection(config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/eq
         print('Processing profile no '+str(nprof))
         latargo=ds_profiles.LATITUDE[nprof].values
         lonargo=ds_profiles.LONGITUDE[nprof].values
+        print('Lat and Lon for this profile is ',latargo,lonargo)
         presargo=ds_profiles.PRES[nprof,:].values
         i0,j0=loc(latargo,lonargo,nprof,hgrfile,namlatmod,namlonmod,nammaskmod,sosie_exec)
         if (i0,j0) == (-1,-1):
@@ -233,7 +234,9 @@ def selection(config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/eq
         index_i_model.append(i0)
         index_j_model.append(j0)
         ds_one=ds_profiles.isel(N_PROF=nprof)
+        print('Lat and Lon dans ds_one valent',ds_one.LATITUDE.values,ds_one.LONGITUDE.values)
         ds_prof=ds_one.expand_dims({'N_PROF':1})
+        print('Lat and Lon dans ds_prof valent',ds_prof.LATITUDE.values,ds_prof.LONGITUDE.values)
         try:
             ds_profiles_out=xr.concat([ds_profiles_out,ds_prof],dim='N_PROF')
         except NameError:
