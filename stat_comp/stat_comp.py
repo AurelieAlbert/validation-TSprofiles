@@ -184,7 +184,8 @@ def check_number_profile(nprof,i0,j0,depthmin,coordfile,maskfile,zgrfile,namlatm
 
 
 # Make the selection of profiles
-def selection(config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/equipes/IGE/meom/workdir/lerouste/MEDWEST60/',coordfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_coordinates_v3.nc4',maskfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mask.nc4',hgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_hgr.nc4',zgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_zgr.nc4',batfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_Bathymetry_v3.3.nc4',namlatmod='nav_lat',namlonmod='nav_lon',namdepmod='gdept_1d',nammaskmod='tmask',ymin=2009,mmin=7,dmin=1,ymax=2010,mmax=6,dmax=30,depthmin=0,radius_max=0.25,period=0,number_of_model_profiles=100000,plotdir='plots',ncdir='/gpfswork/rech/egi/rote001/ARGO',dmap=1,sosie_exec='/mnt/meom/workdir/alberta/DEV/sosie/bin/ij_from_lon_lat.x'):
+def selection(config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/equipes/IGE/meom/workdir/lerouste/MEDWEST60/',coordfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_coordinates_v3.nc4',maskfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mask.nc4',hgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_hgr.nc4',zgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_zgr.nc4',batfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_Bathymetry_v3.3.nc4',namlatmod='nav_lat',namlonmod='nav_lon',namdepmod='gdept_1d',nammaskmod='tmask',namtempmod='votemper',
+namsaltmod='vosaline',ymin=2009,mmin=7,dmin=1,ymax=2010,mmax=6,dmax=30,depthmin=0,radius_max=0.25,period=0,number_of_model_profiles=100000,plotdir='plots',ncdir='/gpfswork/rech/egi/rote001/ARGO',dmap=1,sosie_exec='/mnt/meom/workdir/alberta/DEV/sosie/bin/ij_from_lon_lat.x'):
     # determining the dates
     from argopy import DataFetcher as ArgoDataFetcher
 
@@ -249,9 +250,64 @@ def selection(config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/eq
     return ds_profiles_out
 
                         
+# Colocation of profile in model with hourly outputs of gridT and gridS
+
+def colocation_profiles_argo(ds_profiles,config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/equipes/IGE/meom/workdir/lerouste/MEDWEST60/',coordfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_coordinates_v3.nc4',maskfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mask.nc4',hgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_hgr.nc4',zgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_zgr.nc4',batfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_Bathymetry_v3.3.nc4',namlatmod='nav_lat',namlonmod='nav_lon',namdepmod='gdept_1d',nammaskmod='tmask',namtempmod='votemper',
+namsaltmod='vosaline',ymin=2009,mmin=7,dmin=1,ymax=2010,mmax=6,dmax=30,depthmin=0,radius_max=0.25,period=0,number_of_model_profiles=100000,plotdir='plots',ncdir='/gpfswork/rech/egi/rote001/ARGO',dmap=1,sosie_exec='/mnt/meom/workdir/alberta/DEV/sosie/bin/ij_from_lon_lat.x'):
+    nb_profilesargo=len(ds_profiles.N_PROF)
+    profile_temp_model=[]
+    profile_salt_model=[]
+    for prof in np.arange(nb_profilesargo):
+        i0=ds_profiles.index_i_model[prof]
+        j0=ds_profiles.index_j_model[prof]
+        date_argo=ds_profiles.TIME[prof]
+        t_argo=pd.to_datetime(date_argo.values)
+        year_argo=t_argo.year
+        month_argo=t_argo.month
+        mm_argo = "{:02d}".format(month_argo)
+        day_argo=t_argo.day
+        dd_argo = "{:02d}".format(day_argo)
+        hour_argo=t_argo.hour
+        model_file_nameT=str(config)+'-'+str(case)+'_y'+str(year_argo)+'m'+str(mm_argo)+'d'+str(dd_argo)+'.1h_gridT.nc'
+        model_file_nameS=str(config)+'-'+str(case)+'_y'+str(year_argo)+'m'+str(mm_argo)+'d'+str(dd_argo)+'.1h_gridS.nc'
+        if os.path.exists(dirmod+model_file_nameT):
+            print('the model file exists for this profile, proceed')
+            dsT=xr.open_dataset(dirmod+model_file_nameT)
+            dsS=xr.open_dataset(dirmod+model_file_nameS)
+            model_profile_T=dsT[namtempmod][hour_argo,:,j0,i0].values
+            model_profile_S=dsS[namsaltmod][hour_argo,:,j0,i0].values
+            profile_temp_model.append(model_profile_T)
+            profile_salt_model.append(model_profile_S)
+            ds_one=ds_profiles.isel(N_PROF=prof)
+            ds_prof=ds_one.expand_dims({'N_PROF':1})
+            try:
+                ds_profiles_out=xr.concat([ds_profiles_out,ds_prof],dim='N_PROF')
+            except NameError:
+                ds_profiles_out=ds_prof  
+        else:
+            print('the model file does not exist for this profile')
+            continue
+    dsz=xr.open_dataset(zgrfile)
+    ds_profiles_out['DEPTH_MOD']=dsz[namdepmod][0]
+    ds_profiles_out=ds_profiles_out.rename({'z':'DEPTH_MOD'})
+    ds_profiles_out=ds_profiles_out.rename_vars({'DEPTH_MOD':'model_levels'})
+    profile_temp_model_da=xr.DataArray(profile_temp_model,dims={'N_PROF','DEPTH_MOD'})
+    profile_salt_model_da=xr.DataArray(profile_salt_model,dims={'N_PROF','DEPTH_MOD'})
+    ds_profiles_out['profile_temp_model']=profile_temp_model_da
+    ds_profiles_out['profile_salt_model']=profile_salt_model_da
+    if not os.path.exists(ncdir):
+        os.makedirs(ncdir)
+    netcdf_file=ncdir+'/ARGO_profiles_selection_and_model_colocation_for_'+str(config)+'-'+str(case)+'_'+str(datemin)+'-'+str(datemax)+'_'+str(depthmin)+'m_'+str(radius_max)+'x'+str(period)+'d_'+str(number_of_model_profiles)+'.nc'
+    ds_profiles_out.to_netcdf(path=netcdf_file,mode='w')
+    return ds_profiles_out
+            
+            
+
+
 # Plot the locations of all profiles
 
-def plot_profiles_argo(ds_profiles,config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/equipes/IGE/meom/workdir/lerouste/MEDWEST60/',coordfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_coordinates_v3.nc4',maskfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mask.nc4',hgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_hgr.nc4',zgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_zgr.nc4',batfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_Bathymetry_v3.3.nc4',namlatmod='nav_lat',namlonmod='nav_lon',namdepmod='gdept_1d',nammaskmod='tmask',ymin=2009,mmin=7,dmin=1,ymax=2010,mmax=6,dmax=30,depthmin=0,radius_max=0.25,period=0,number_of_model_profiles=100000,plotdir='plots',ncdir='/gpfswork/rech/egi/rote001/ARGO',dmap=1,sosie_exec='/mnt/meom/workdir/alberta/DEV/sosie/bin/ij_from_lon_lat.x'):
+def plot_profiles_argo(ds_profiles,config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/equipes/IGE/meom/workdir/lerouste/MEDWEST60/',coordfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_coordinates_v3.nc4',maskfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mask.nc4',hgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_hgr.nc4',zgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_zgr.nc4',batfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_Bathymetry_v3.3.nc4',namlatmod='nav_lat',namlonmod='nav_lon',namdepmod='gdept_1d',nammaskmod='tmask',namtempmod='votemper',
+namsaltmod='vosaline',ymin=2009,mmin=7,dmin=1,ymax=2010,mmax=6,dmax=30,depthmin=0,radius_max=0.25,period=0,number_of_model_profiles=100000,plotdir='plots',ncdir='/gpfswork/rech/egi/rote001/ARGO',dmap=1,sosie_exec='/mnt/meom/workdir/alberta/DEV/sosie/bin/ij_from_lon_lat.x'):
 
     nb_profilesargo=len(ds_profiles.N_PROF)
     all_lat=np.zeros((nb_profilesargo))

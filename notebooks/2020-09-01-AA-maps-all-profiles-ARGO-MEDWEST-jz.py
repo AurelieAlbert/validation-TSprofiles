@@ -35,7 +35,7 @@ import sys
 sys.path.insert(0,'/gpfswork/rech/egi/rote001/git/validation-TSprofiles/stat_comp')
 sys.path.insert(0,'/gpfswork/rech/egi/rote001/git/validation-TSprofiles/param')
 
-import stat_comp as sc
+import stat_comp_debug as sc
 import param_all_profiles_MEDWEST60_1an_jz as param
 
 params = {

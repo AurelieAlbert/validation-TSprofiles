@@ -17,6 +17,8 @@ namlatmod='nav_lat'
 namlonmod='nav_lon'
 namdepmod='gdept_1d'
 nammaskmod='tmask'
+namtempmod='votemper'
+namsaltmod='vosaline'
 # period considered for the comparison
 ymin=2009;mmin=7;dmin=1
 ymax=2010;mmax=6;dmax=30
