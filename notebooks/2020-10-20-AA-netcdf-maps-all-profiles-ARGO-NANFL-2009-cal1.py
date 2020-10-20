@@ -32,11 +32,11 @@ import warnings
 warnings.filterwarnings('ignore')
 
 import sys
-sys.path.insert(0,'/gpfswork/rech/egi/rote001/git/validation-TSprofiles/stat_comp')
-sys.path.insert(0,'/gpfswork/rech/egi/rote001/git/validation-TSprofiles/param')
+sys.path.insert(0,'/mnt/meom/workdir/alberta/DEV/git/validation-TSprofiles/stat_comp')
+sys.path.insert(0,'/mnt/meom/workdir/alberta/DEV/git/validation-TSprofiles/param')
 
 import stat_comp_debug as sc
-import param_all_profiles_MEDWEST60_2012_2013_jz as param
+import param_all_profiles_NANFL60_2009_cal1 as param
 
 params = {
     'config':param.config,
