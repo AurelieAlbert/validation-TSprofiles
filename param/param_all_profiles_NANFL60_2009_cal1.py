@@ -35,5 +35,7 @@ plotdir='/mnt/meom/workdir/alberta/DEV/git/validation-TSprofiles/plots'
 ncdir='/mnt/meom/workdir/alberta/ARGO'
 # where to find the sosie executable
 sosie_exec='/home/brodeau/DEV/sosie/bin/ij_from_lon_lat.x'
+#source for argo fetcher
+srcargo='argovis' #'erddap' or 'argovis' 
 # wether we want to plot the area of comparison for each profile
 dmap=0

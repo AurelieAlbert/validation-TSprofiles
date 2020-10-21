@@ -65,7 +65,8 @@ params = {
     'plotdir':param.plotdir,
     'ncdir':param.ncdir,
     'dmap':param.dmap,
-    'sosie_exec':param.sosie_exec}
+    'sosie_exec':param.sosie_exec,
+    'srcargo':param.srcargo}
 
 ds_profiles=sc.selection(**params)
 sc.plot_profiles_argo(ds_profiles,**params)

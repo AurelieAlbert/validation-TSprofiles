@@ -185,7 +185,7 @@ def check_number_profile(nprof,i0,j0,depthmin,coordfile,maskfile,zgrfile,namlatm
 
 # Make the selection of profiles
 def selection(config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/equipes/IGE/meom/workdir/lerouste/MEDWEST60/',coordfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_coordinates_v3.nc4',maskfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mask.nc4',hgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_hgr.nc4',zgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_zgr.nc4',batfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_Bathymetry_v3.3.nc4',namlatmod='nav_lat',namlonmod='nav_lon',namdepmod='gdept_1d',nammaskmod='tmask',namtempmod='votemper',
-namsaltmod='vosaline',ymin=2009,mmin=7,dmin=1,ymax=2010,mmax=6,dmax=30,depthmin=0,radius_max=0.25,period=0,number_of_model_profiles=100000,plotdir='plots',ncdir='/gpfswork/rech/egi/rote001/ARGO',dmap=1,sosie_exec='/mnt/meom/workdir/alberta/DEV/sosie/bin/ij_from_lon_lat.x'):
+namsaltmod='vosaline',ymin=2009,mmin=7,dmin=1,ymax=2010,mmax=6,dmax=30,depthmin=0,radius_max=0.25,period=0,number_of_model_profiles=100000,plotdir='plots',ncdir='/gpfswork/rech/egi/rote001/ARGO',dmap=1,sosie_exec='/mnt/meom/workdir/alberta/DEV/sosie/bin/ij_from_lon_lat.x',srcargo='erddap'):
     # determining the dates
     from argopy import DataFetcher as ArgoDataFetcher
 
@@ -197,7 +197,7 @@ namsaltmod='vosaline',ymin=2009,mmin=7,dmin=1,ymax=2010,mmax=6,dmax=30,depthmin=
     lon=ds[namlonmod]
     latmodmin,latmodmax,lonmodmin,lonmodmax=(lat.min(),lat.max(),lon.min(),lon.max())
     # use argopy to get the selection of profiles
-    ds_points=ArgoDataFetcher().region([lonmodmin.values,lonmodmax.values,latmodmin.values,latmodmax.values,0,12000,str(datemin),str(datemax)]).to_xarray()
+    ds_points=ArgoDataFetcher(src=srcargo).region([lonmodmin.values,lonmodmax.values,latmodmin.values,latmodmax.values,0,12000,str(datemin),str(datemax)]).to_xarray()
     ds_profiles=ds_points.argo.point2profile()
     index_i_model=[]
     index_j_model=[]
