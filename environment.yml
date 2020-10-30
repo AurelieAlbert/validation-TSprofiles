@@ -18,6 +18,6 @@ dependencies:
         - matplotlib
         - papermill
         - seawater
-        - aiohttp
-        - scikit-learn
+        - argopy
+        - seaborn
 
