@@ -1,9 +1,8 @@
-# stat_comp.py
+# coloc_prof_argo.py
 '''
  Selection of argo profiles to compare to a simulation
  In this script the argo database is browsed in order to find the profiles that will be compare to the outputs of one simulation. 
- The comparison will not be a simple colocation of the profile inside the model grid but we want to make a statistical comparison of the observed profile with a significant number of profiles close to it in the model (close in terms of space and time, for instance in a 0.5° radius around the profile location and 10 days before and after it has been sampled)
- Therefore the selected profiles must have to be relevant according to some criteria :
+ The selected profiles must have to be relevant according to some criteria :
    - they must be inside the domain of simulation (the mask file of the configuration file must be provided)  
    - they must be sampled inside the period of simulation (the period shortened by a certain amount of days must be provided)
    - they must go as deep as a given depth (according to the desired depth for the comparison profiles)
@@ -116,73 +115,8 @@ def check_prof_depth(nprof,presargo,latargo,depthmin):
     return check
 
 
-# Check if there are enough model profiles around the obs profile
-def map_profile_from_jsonfile(lonprof,latprof,radius,lonmodmin, lonmodmax,latmodmin, latmodmax,nprof,plotdir):
-    # Produce a map with the profile location and the area in which the model profiles are sampled
-    import cartopy.crs as ccrs
-    import cartopy.feature as cfeature
-    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-    import matplotlib.patches as mpatches
-    fig=plt.figure(figsize=(20,15))
-    ax = plt.subplot(111,projection=ccrs.PlateCarree(central_longitude=0))
-    ax.set_extent((lonmodmin, lonmodmax, latmodmin, latmodmax))
-    ax.coastlines(resolution="10m")
-    gl = ax.gridlines(draw_labels=True, linestyle=':', color='black',
-                      alpha=0.5)
-    gl.xlabels_top = False
-    gl.ylabels_right = False
-    gl.xformatter = LONGITUDE_FORMATTER
-    gl.yformatter = LATITUDE_FORMATTER
-    ax.tick_params('both',labelsize=22)
-    ax.add_patch(mpatches.Circle(xy=[lonprof,latprof], radius=radius, color='green', alpha=0.3, transform=ccrs.PlateCarree(), zorder=30))
-    plt.scatter(lonprof,latprof, c='g', linewidth='0', s=18);
-    plt.savefig(plotdir+'/debug_map_'+str(nprof)+'.png')
-
-def check_number_profile(nprof,i0,j0,depthmin,coordfile,maskfile,zgrfile,namlatmod,namlonmod,namdepmod,nammaskmod,lonargo,latargo,radius_max,number_of_model_profiles,period,lonmodmin,lonmodmax,latmodmin,latmodmax,dmap=0):
-    print('check if there are enough model profiles : ')
-    if radius_max > 0:
-        #open mask file and read lat, lon and mask
-        ds=xr.open_dataset(coordfile)
-        gdpts=np.int(np.round(radius_max*60))      
-        lat=ds[namlatmod][j0-gdpts:j0+gdpts+1,i0-gdpts:i0+gdpts+1]
-        lon=ds[namlonmod][j0-gdpts:j0+gdpts+1,i0-gdpts:i0+gdpts+1]
-        dsz=xr.open_dataset(zgrfile)
-        depth=dsz[namdepmod][0]
-        dsm=xr.open_dataset(maskfile)
-        tmask=dsm[nammaskmod][0,:,j0-gdpts:j0+gdpts+1,i0-gdpts:i0+gdpts+1]
-        # Stack the variables
-        lon_stacked = lon.stack(profile=('x', 'y'))
-        lat_stacked = lat.stack(profile=('x', 'y'))
-        mask_stacked = tmask.stack(profile=('x', 'y'))
-        #Get the depth at every grid point
-        d,ly,lx=tmask.shape
-        depthmod2d=np.zeros([lx,ly])
-        for j in np.arange(ly):
-            for i in np.arange(lx):
-                depthmod2d[j,i]=depth[np.min(np.where(tmask[:,j,i].values<1))].values
-        xr_depthmod2d=xr.DataArray(depthmod2d, dims=("y", "x"))    
-        depth_stacked = xr_depthmod2d.stack(profile=('x', 'y'))
-        #find the profiles filling criteria
-        distance_threshold = radius_max
-        square_distance_to_observation = (lon_stacked - lonargo)**2 + (lat_stacked-latargo)**2
-        is_close_to_observation = (square_distance_to_observation < distance_threshold) & (depth_stacked > depthmin)
-        nb_profiles=np.sum(1*is_close_to_observation)*24*(period*2+1)
-        print('There is a total of '+str(nb_profiles.values)+' model oceanic profiles with enough depth')
-        if dmap == 1:
-            map_profile_from_jsonfile(lonprof,latprof,radius,lonmodmin, lonmodmax,latmodmin, latmodmax,nprof,plotdir)
-    else:
-        nb_profiles=1
-        print('There is a total of '+str(nb_profiles)+' model oceanic profiles with enough depth')
-    if nb_profiles >= number_of_model_profiles:
-        check=0
-    else:
-        check=1
-    return check
-
-
-
 # Make the selection of profiles
-def selection(config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/equipes/IGE/meom/workdir/lerouste/MEDWEST60/',coordfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_coordinates_v3.nc4',maskfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mask.nc4',hgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_hgr.nc4',zgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_zgr.nc4',batfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_Bathymetry_v3.3.nc4',namlatmod='nav_lat',namlonmod='nav_lon',namdepmod='gdept_1d',nammaskmod='tmask',namtempmod='votemper',namsaltmod='vosaline',ymin=2009,mmin=7,dmin=1,ymax=2010,mmax=6,dmax=30,depthmin=0,radius_max=0.25,period=0,number_of_model_profiles=100000,plotdir='plots',ncdir='/gpfswork/rech/egi/rote001/ARGO',dmap=1,sosie_exec='/mnt/meom/workdir/alberta/DEV/sosie/bin/ij_from_lon_lat.x',srcargo='erddap'):
+def make_netcdf_from_argopy(config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/equipes/IGE/meom/workdir/lerouste/MEDWEST60/',coordfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_coordinates_v3.nc4',maskfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mask.nc4',hgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_hgr.nc4',zgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_zgr.nc4',batfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_Bathymetry_v3.3.nc4',namlatmod='nav_lat',namlonmod='nav_lon',namdepmod='gdept_1d',nammaskmod='tmask',namtempmod='votemper',namsaltmod='vosaline',ymin=2009,mmin=7,dmin=1,ymax=2010,mmax=6,dmax=30,depthmin=0,radius_max=0.25,period=0,number_of_model_profiles=100000,plotdir='plots',ncdir='/gpfswork/rech/egi/rote001/ARGO',dmap=1,sosie_exec='/mnt/meom/workdir/alberta/DEV/sosie/bin/ij_from_lon_lat.x',srcargo='erddap'):
     # determining the dates
     from argopy import DataFetcher as ArgoDataFetcher
 
@@ -197,6 +131,14 @@ def selection(config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/eq
     # use argopy to get the selection of profiles
     ds_points=ArgoDataFetcher(src=srcargo,parallel=True).region([np.float(lonmodmin),np.float(lonmodmax),np.float(latmodmin),np.float(latmodmax),0,10000,str(datemin),str(datemax)]).to_xarray()
     ds_profiles=ds_points.argo.point2profile()
+    if not os.path.exists(ncdir):
+        os.makedirs(ncdir)
+    netcdf_file=ncdir+'/All_ARGO_profiles_selection_for_'+str(config)+'-'+str(case)+'_'+str(datemin)+'-'+str(datemax)+'.nc'
+    ds_profiles.to_netcdf(path=netcdf_file,mode='w')
+
+
+def make_netcdf_from_argopy(config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/equipes/IGE/meom/workdir/lerouste/MEDWEST60/',coordfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_coordinates_v3.nc4',maskfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mask.nc4',hgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_hgr.nc4',zgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_zgr.nc4',batfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_Bathymetry_v3.3.nc4',namlatmod='nav_lat',namlonmod='nav_lon',namdepmod='gdept_1d',nammaskmod='tmask',namtempmod='votemper',namsaltmod='vosaline',ymin=2009,mmin=7,dmin=1,ymax=2010,mmax=6,dmax=30,depthmin=0,radius_max=0.25,period=0,number_of_model_profiles=100000,plotdir='plots',ncdir='/gpfswork/rech/egi/rote001/ARGO',dmap=1,sosie_exec='/mnt/meom/workdir/alberta/DEV/sosie/bin/ij_from_lon_lat.x',srcargo='erddap'):
+def check_criteria_keep_profiles_from_netcdf(config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/equipes/IGE/meom/workdir/lerouste/MEDWEST60/',coordfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_coordinates_v3.nc4',maskfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mask.nc4',hgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_hgr.nc4',zgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_zgr.nc4',batfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_Bathymetry_v3.3.nc4',namlatmod='nav_lat',namlonmod='nav_lon',namdepmod='gdept_1d',nammaskmod='tmask',namtempmod='votemper',
     index_i_model=[]
     index_j_model=[]
     # get rid of profiles not following criteria
@@ -304,7 +246,8 @@ namsaltmod='vosaline',ymin=2009,mmin=7,dmin=1,ymax=2010,mmax=6,dmax=30,depthmin=
 
 # Plot the locations of all profiles
 
-def plot_profiles_argo(ds_profiles,config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/equipes/IGE/meom/workdir/lerouste/MEDWEST60/',coordfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_coordinates_v3.nc4',maskfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mask.nc4',hgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_hgr.nc4',zgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_zgr.nc4',batfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_Bathymetry_v3.3.nc4',namlatmod='nav_lat',namlonmod='nav_lon',namdepmod='gdept_1d',nammaskmod='tmask',namtempmod='votemper',namsaltmod='vosaline',ymin=2009,mmin=7,dmin=1,ymax=2010,mmax=6,dmax=30,depthmin=0,radius_max=0.25,period=0,number_of_model_profiles=100000,plotdir='plots',ncdir='/gpfswork/rech/egi/rote001/ARGO',dmap=1,sosie_exec='/mnt/meom/workdir/alberta/DEV/sosie/bin/ij_from_lon_lat.x',srcargo='erddap'):
+def plot_profiles_argo(ds_profiles,config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/equipes/IGE/meom/workdir/lerouste/MEDWEST60/',coordfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_coordinates_v3.nc4',maskfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mask.nc4',hgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_hgr.nc4',zgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_zgr.nc4',batfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_Bathymetry_v3.3.nc4',namlatmod='nav_lat',namlonmod='nav_lon',namdepmod='gdept_1d',nammaskmod='tmask',namtempmod='votemper',
+namsaltmod='vosaline',ymin=2009,mmin=7,dmin=1,ymax=2010,mmax=6,dmax=30,depthmin=0,radius_max=0.25,period=0,number_of_model_profiles=100000,plotdir='plots',ncdir='/gpfswork/rech/egi/rote001/ARGO',dmap=1,sosie_exec='/mnt/meom/workdir/alberta/DEV/sosie/bin/ij_from_lon_lat.x'):
 
     nb_profilesargo=len(ds_profiles.N_PROF)
     all_lat=np.zeros((nb_profilesargo))

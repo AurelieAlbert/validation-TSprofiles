@@ -1,0 +1,66 @@
+ 
+ 
+ Use "-h" for help
+ 
+ 
+  * Input file = 
+ /mnt/meom/workdir/alberta/eNATL60/eNATL60-I/mesh_hgr_eNATL60NANFL_3.6.nc
+    => associated longitude/latitude/time = glamt, gphit
+ 
+  *** CONFIG: cconf =mesh_hgr_eNATL60NANFL_3.6
+ 
+ Grid is 2D: ni, nj =         905         728
+ 
+ 
+  --- GETVAR_2D: opening file /mnt/meom/workdir/alberta/eNATL60/eNATL60-I/mesh_h
+ gr_eNATL60NANFL_3.6.nc for glamt !
+  --- GETVAR_2D: closing file /mnt/meom/workdir/alberta/eNATL60/eNATL60-I/mesh_h
+ gr_eNATL60NANFL_3.6.nc !
+ 
+  *** Minimum longitude on model grid before :   -55.1408233642578     
+  *** Maximum longitude on model grid before :   -39.9374885559082     
+  *** Minimum longitude on model grid:    304.859176635742     
+  *** Maximum longitude on model grid:    320.062511444092     
+ 
+  --- GETVAR_2D: opening file /mnt/meom/workdir/alberta/eNATL60/eNATL60-I/mesh_h
+ gr_eNATL60NANFL_3.6.nc for gphit !
+  --- GETVAR_2D: closing file /mnt/meom/workdir/alberta/eNATL60/eNATL60-I/mesh_h
+ gr_eNATL60NANFL_3.6.nc !
+ 
+  *** Minimum latitude on model grid :    29.9864025115967     
+  *** Maximum latitude on model grid :    39.9873733520508     
+  *** Found            1  points in txt/prof0.txt...
+ 
+ 
+ *** Point #   1 -> Box Profile_188 :  312.9700  30.7510
+ 
+  Source domain size:          905         728
+  Target domain size:            1           1
+ 
+  *** FIND_NEAREST_POINT => Is source grid regular ??? => F
+  *** FIND_NEAREST_POINT => Is target grid regular ??? => T
+                   => going for advanced FIND_NEAREST algorithm !
+ 
+  Min. latitude on source & target domains =>   29.98640       30.75100    
+  Max. latitude on source & target domains =>   39.98737       30.75100    
+                         => going for advanced algorithm !
+ 
+     *** Latitude binning for more efficient localization *** 
+    => binning from    28.0000000000000       to    32.0000000000000     
+ 
+      => VLAT_SPLIT_BOUNDS =
+   28.0000000000000        32.0000000000000     
+      => corresponding start values for j_s =
+           1
+      => corresponding stop values for j_s =
+         144
+ 
+ 
+ 
+ #  NEAREST POINTS ON GRID:
+ *** Point #   1, Profile_188 -> i,j: 0480,0053 (lon,lat: 312.9700,  30.7510)
+ 
+ 
+   ==> check file "ij_found.out" for results...
+  Bye!
+ 

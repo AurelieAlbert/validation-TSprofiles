@@ -35,7 +35,7 @@ import sys
 sys.path.insert(0,'/mnt/meom/workdir/alberta/DEV/git/validation-TSprofiles/stat_comp')
 sys.path.insert(0,'/mnt/meom/workdir/alberta/DEV/git/validation-TSprofiles/param')
 
-import stat_comp_debug as sc
+import stat_comp as sc
 import param_all_profiles_NANFL60_2009_cal1 as param
 
 params = {
@@ -69,6 +69,6 @@ params = {
     'srcargo':param.srcargo}
 
 ds_profiles=sc.selection(**params)
-sc.plot_profiles_argo(ds_profiles,**params)
+#sc.plot_profiles_argo(ds_profiles,**params)
 
 

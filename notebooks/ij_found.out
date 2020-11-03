@@ -1,0 +1,7 @@
+ #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ #  Output of "ij_from_lon_lat.x" / nearest-point location
+ #   => based on horizontal coordinates found into "/mnt/meom/workdir/alberta/eNATL60/eNATL60-I/mesh_hgr_eNATL60NANFL_3.6.nc"
+ #
+ #      Name        ji    jj    Long(ji,jj)  Lat(ji,jj)  (Input long.  Input lat.)
+ #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     Profile_188   480    53   -47.024998    30.750660   -47.030000    30.751000
