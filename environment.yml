@@ -20,6 +20,7 @@ dependencies:
         - papermill
         - seawater
         - seaborn
+        - erddapy=0.6
         - pip
         - pip:
                 - git+http://github.com/xgcm/euroargodev/argopy.git@master
