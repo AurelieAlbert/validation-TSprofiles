@@ -22,5 +22,5 @@ dependencies:
         - seaborn
         - pip
         - pip:
-                - git+https://github.com/xgcm/euroargodev/argopy.git@master
+                - git+http://github.com/xgcm/euroargodev/argopy.git@master
 
