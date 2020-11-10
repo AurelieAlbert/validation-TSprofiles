@@ -24,4 +24,5 @@ dependencies:
         - pip
         - pip:
                 - git+http://github.com/xgcm/euroargodev/argopy.git@master
+                - erddapy=0.6.0
 
