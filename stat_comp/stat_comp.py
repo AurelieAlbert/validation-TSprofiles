@@ -247,6 +247,65 @@ def selection(config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/eq
     ds_profiles_out.to_netcdf(path=netcdf_file,mode='w')
     return ds_profiles_out
 
+# Make the selection of profiles from a netcdf gathering ARGO profiles
+def selection_from_netcdf(ncfile,config='MEDWEST60',case='BLBT02',member='',dirmod='/mnt/alberta/equipes/IGE/meom/workdir/lerouste/MEDWEST60/',coordfile='/mnt/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_coordinates_v3.nc4',maskfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mask.nc4',hgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_hgr.nc4',zgrfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_mesh_zgr.nc4',batfile='/mnt/alberta/equipes/IGE/meom/MODEL_SET/MEDWEST60/MEDWEST60-I/MEDWEST60_Bathymetry_v3.3.nc4',namlatmod='nav_lat',namlonmod='nav_lon',namdepmod='gdept_1d',nammaskmod='tmask',namtempmod='votemper',namsaltmod='vosaline',ymin=2009,mmin=7,dmin=1,ymax=2010,mmax=6,dmax=30,depthmin=0,radius_max=0.25,period=0,number_of_model_profiles=100000,plotdir='plots',ncdir='/gpfswork/rech/egi/rote001/ARGO',dmap=1,sosie_exec='/mnt/meom/workdir/alberta/DEV/sosie/bin/ij_from_lon_lat.x',srcargo='erddap'):
+    datemin=datetime.date(ymin,mmin,dmin)+datetime.timedelta(days=period)
+    datemax=datetime.date(ymax,mmax,dmax)-datetime.timedelta(days=period)
+    # determining the area
+    ds=xr.open_dataset(coordfile)
+    lat=ds[namlatmod]
+    lon=ds[namlonmod]
+    latmodmin,latmodmax,lonmodmin,lonmodmax=(lat.values.min(),lat.values.max(),lon.values.min(),lon.values.max())
+    ds_profiles=xr.open_dataset(ncfile)
+    index_i_model=[]
+    index_j_model=[]
+    # get rid of profiles not following criteria
+    for nprof in range(len(ds_profiles.N_PROF)):
+        print('Processing profile no '+str(nprof))
+        latargo=ds_profiles.LATITUDE[nprof].values
+        lonargo=ds_profiles.LONGITUDE[nprof].values
+        presargo=ds_profiles.PRES[nprof,:].values
+        i0,j0=loc(latargo,lonargo,nprof,hgrfile,namlatmod,namlonmod,nammaskmod,sosie_exec)
+        if (i0,j0) == (-1,-1):
+            print('profile is not in the domain at all')
+            continue
+        check=check_prof_in_ocean(i0,j0,maskfile,nammaskmod)
+        if check == 1:
+            print('no, profile is on the land')
+            continue
+        print('yes, profile is in the ocean')
+        check=check_close_to_boundaries(nprof,maskfile,nammaskmod,i0,j0,radius_max)
+        if check == 1:
+            print('no, profile is too close to model boundaries')
+            continue
+        print('yes, profile is not too close to model boundaries')
+        check=check_prof_depth(nprof,presargo,latargo,depthmin)
+        if check == 1:
+            print('no, profile is not deep enough')
+            continue
+        print('yes, profile is deep enough')
+        check=check_number_profile(nprof,i0,j0,depthmin,coordfile,maskfile,zgrfile,namlatmod,namlonmod,namdepmod,nammaskmod,lonargo,latargo,radius_max,number_of_model_profiles,period,lonmodmin, lonmodmax,latmodmin, latmodmax,dmap=0)
+        if check == 1:
+            print('no, there are not enough model profiles')
+            continue
+        print('yes, there are enough model profiles')
+        index_i_model.append(i0)
+        index_j_model.append(j0)
+        ds_one=ds_profiles.isel(N_PROF=nprof)
+        ds_prof=ds_one.expand_dims({'N_PROF':1})
+        try:
+            ds_profiles_out=xr.concat([ds_profiles_out,ds_prof],dim='N_PROF')
+        except NameError:
+            ds_profiles_out=ds_prof  
+    indexI_da=xr.DataArray(index_i_model,dims='N_PROF')
+    indexJ_da=xr.DataArray(index_j_model,dims='N_PROF')
+    ds_profiles_out['index_i_model']=indexI_da
+    ds_profiles_out['index_j_model']=indexJ_da
+    if not os.path.exists(ncdir):
+        os.makedirs(ncdir)
+    netcdf_file=ncdir+'/ARGO_profiles_selection_for_'+str(config)+'-'+str(case)+'_'+str(datemin)+'-'+str(datemax)+'_'+str(depthmin)+'m_'+str(radius_max)+'x'+str(period)+'d_'+str(number_of_model_profiles)+'.nc'
+    ds_profiles_out.to_netcdf(path=netcdf_file,mode='w')
+    return ds_profiles_out
                         
 # Colocation of profile in model with hourly outputs of gridT and gridS
 
